@@ -2,8 +2,10 @@
 title: "Exploratory analysis of a GEO dataset"
 author: "Aina Montalban"
 date: "5/15/2019"
-output: html_document
-editor_options: 
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
   chunk_output_type: console
 ---
 
@@ -13,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-what is this exercise is about
+The aim of this exercise is to practice the basic elements of Bioconductor and Rmarkdown using a study from the Gene Expression Omnibus Database.
 ```{r}
 
 ```
@@ -31,39 +33,105 @@ Total RNA isolated from FACS-sorted uterine natural killer cells from Gd10.5 pre
 # Citation(s)
 Baltayeva J, Beristain A
 
-# Data Description
+# Study Description
 We have two files:
 
 - The *targets* file.
 - The *expression matrix* file.
 
+# Read or create the data 
+The ExpressionSet object can be created in three ways: (i) using R objects created from the files downloaded (ii) from scratch, creating and collating the different components, and (iii) from the web using geoQUERY. 
+
 ```{r readTargets}
 targets <- read.csv("targets.txt", sep = "")
-expressions <- read.delim("expressions.txt", row.names = 1)
+expressions <- as.matrix(read.delim("expressions.txt", row.names = 1))
+class(expressions)
+```
+
+The package Biobase contains basic structures for microarray data.
+
+```{r}
+require(Biobase)
 ```
 
 ```{r}
-show(targets)
+myEset <- ExpressionSet(expressions)
+class(myEset)
+show(myEset)
+```
 
+The class AnnotatedDataFrame is intended to contain covariate information.
+```{r}
+columnDesc <-  data.frame(labelDescription= c("Sample Names", "Diet type", "Replicate"))
+myAnnotDF <- new("AnnotatedDataFrame", data=targets, varMetadata= columnDesc)
+show(myAnnotDF)
+phenoData(myEset) <- myAnnotDF
+```
+
+The class MIAME was created to add the "Minimum Information About a Microarray Experiment"
+```{r}
+myDesc <- new("MIAME", name= "Expression profiling by array",
+            lab= "Beristain lab",
+            contact= "Alexander G Beristain",
+            title="Genome-wide analysis of uterine natural killer cell gene expression from control diet-fed and high fat diet-fed female mice in early pregnancy", url="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi")
+print(myDesc)
 ```
 
 
+```{r}
+rownames(pData(myAnnotDF))<-pData(myAnnotDF)$sampleNames
+```
+
+
+```{r}
+
+myEset <- ExpressionSet(assayData=expressions, 
+                        phenoData=myAnnotDF,
+                        experimentData = myDesc, annotation =  	"GPL23038")
+show(myEset)
+```
+
+## Access Slot values
+
+
+```{r}
+smallEset <- myEset[1:15,c(1:3,6:8)]
+dim(exprs(smallEset))
+dim(pData(smallEset))
+head(pData(smallEset))
+all(colnames(exprs(smallEset))==rownames(pData(smallEset)))
+
+
+## ------------------------------------------------------------------------
+youngEset <- myEset[,pData(myEset)$DietType == "Control_diet_fed"]
+dim(exprs(youngEset))
+head(pData(youngEset))
+```
+
+
+## The GEOquery package
+
+```{r}
+require(GEOquery)
+```
+
+```{r}
+gse <- getGEO("GSE124927")
+class(gse)
+names(gse)
+gse[[1]]
+```
+
+## Data Description
 ```{r}
 dim(expressions)
 summary(expressions)
 ```
 
-```{r}
-boxplot(expressions, col = targets$color)
-```
-
-
 ## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+boxplot(expressions)
 ```
+
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
