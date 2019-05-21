@@ -1,21 +1,21 @@
 sampleName      genotype replicate color
-GSM3559494 	Control_diet_fed 11_1B 2
-GSM3559495 	High_fat_dietfed_Diet-indued_obese 13_6C 2
-GSM3559496 	Control_diet_fed 14_3A 2
-GSM3559497 	High_fat_dietfed_Diet-indued_obese 15_10B 2
-GSM3559498 	High_fat_dietfed_Diet-indued_obese_resistant 16_4D 3
-GSM3559499 	High_fat_dietfed_Diet-indued_obese_resistant 17_4C 3
-GSM3559500 	High_fat_dietfed_Diet-indued_obese 18_2C 3
-GSM3559501 	High_fat_dietfed_Diet-indued_obese 2_6B 3
-GSM3559502 	Control_diet_fed 20_19E 4
-GSM3559503 	Control_diet_fed 24_13D 4
-GSM3559504 	Control_diet_fed 26_17A 4
-GSM3559505 	Control_diet_fed 27_13B 4
-GSM3559506 	High_fat_dietfed_Diet-indued_obese 3_4E 5
-GSM3559507 	High_fat_dietfed_Diet-indued_obese 30_18C 5
-GSM3559508 	Control_diet_fed 32_15E 5
-GSM3559509 	High_fat_dietfed_Diet-indued_obese_resistant 33_14D 5
-GSM3559510 	High_fat_dietfed_Diet-indued_obese_resistant 37_18E 6
-GSM3559511 	Control_diet_fed 38_21C 6
-GSM3559512 	Control_diet_fed 4_3E 6
-GSM3559513 	Control_diet_fed 9_7E 6
+GSM3559494 	Control_diet_fed 11_1B 
+GSM3559495 	High_fat_dietfed_Diet-indued_obese 13_6C 
+GSM3559496 	Control_diet_fed 14_3A 
+GSM3559497 	High_fat_dietfed_Diet-indued_obese 15_10B 
+GSM3559498 	High_fat_dietfed_Diet-indued_obese_resistant 16_4D 
+GSM3559499 	High_fat_dietfed_Diet-indued_obese_resistant 17_4C 
+GSM3559500 	High_fat_dietfed_Diet-indued_obese 18_2C 
+GSM3559501 	High_fat_dietfed_Diet-indued_obese 2_6B 
+GSM3559502 	Control_diet_fed 20_19E 
+GSM3559503 	Control_diet_fed 24_13D 
+GSM3559504 	Control_diet_fed 26_17A 
+GSM3559505 	Control_diet_fed 27_13B 
+GSM3559506 	High_fat_dietfed_Diet-indued_obese 3_4E 
+GSM3559507 	High_fat_dietfed_Diet-indued_obese 30_18C 
+GSM3559508 	Control_diet_fed 32_15E 
+GSM3559509 	High_fat_dietfed_Diet-indued_obese_resistant 33_14D 
+GSM3559510 	High_fat_dietfed_Diet-indued_obese_resistant 37_18E 
+GSM3559511 	Control_diet_fed 38_21C 
+GSM3559512 	Control_diet_fed 4_3E 
+GSM3559513 	Control_diet_fed 9_7E 
