@@ -3,8 +3,8 @@ title: "Exploratory analysis of a GEO dataset"
 author: "Aina Montalban"
 date: "5/15/2019"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 editor_options:
   chunk_output_type: console
 ---
@@ -13,14 +13,11 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction
+# Introduction
 
 The aim of this exercise is to practice the basic elements of Bioconductor and Rmarkdown using a study from the Gene Expression Omnibus Database.
-```{r}
 
-```
-
-# Summary
+## Summary
 
 This study entitled 'Genome-wide analysis of uterine natural killer cell gene expression from control diet-fed and high fat diet-fed female mice in early pregnancy' was done using mice and expression microarrays.
 
@@ -30,17 +27,17 @@ The following description was given: *Analysis of gene expression in uterine nat
 
 Total RNA isolated from FACS-sorted uterine natural killer cells from Gd10.5 pregnancies in 10 control, 6 diet-induced obese and 4 diet-induced obese resistant mice.
 
-# Citation(s)
+## Citation(s)
 Baltayeva J, Beristain A
 
-# Study Description
+## Study Description
 We have two files:
 
 - The *targets* file.
 - The *expression matrix* file.
 
-# Read or create the data 
-The ExpressionSet object can be created in three ways: (i) using R objects created from the files downloaded (ii) from scratch, creating and collating the different components, and (iii) from the web using geoQUERY. 
+# Read the data 
+The ExpressionSet object can be created in two ways: (i) using R objects created from the files downloaded and (ii) from the web using geoQUERY. 
 
 ```{r readTargets}
 targets <- read.csv("targets.txt", sep = "")
@@ -48,11 +45,17 @@ expressions <- as.matrix(read.delim("expressions.txt", row.names = 1))
 class(expressions)
 ```
 
+
 The package Biobase contains basic structures for microarray data.
 
-```{r}
+```{r message=FALSE}
 require(Biobase)
 ```
+
+In the following steps, we will create an ExpressionSet using the GEO study mentioned. 
+
+### Slot AssayData
+The main element, and indeed the only one to be provided to create an ExpressionSet is AssayData. It can be seen as a matrix with as many rows as genes or generically “features” and as many columns as samples or individuals.
 
 ```{r}
 myEset <- ExpressionSet(expressions)
@@ -60,14 +63,35 @@ class(myEset)
 show(myEset)
 ```
 
+### Information about covariates
 The class AnnotatedDataFrame is intended to contain covariate information.
 ```{r}
-columnDesc <-  data.frame(labelDescription= c("Sample Names", "Diet type", "Replicate"))
+columnDesc <-  data.frame(labelDescription= c("Sample Names", "Group", "Replicate"))
 myAnnotDF <- new("AnnotatedDataFrame", data=targets, varMetadata= columnDesc)
 show(myAnnotDF)
+# We can add it to to the ExpressionSet.
 phenoData(myEset) <- myAnnotDF
 ```
 
+```{r}
+rownames(pData(myAnnotDF))<-pData(myAnnotDF)$sampleName
+myEset <- ExpressionSet(assayData=expressions, phenoData=myAnnotDF)
+show(myEset)
+```
+
+## Adding information about features
+
+The number of rows in featureData must match the number of rows in assayData. Row names of featureData must match row names of the matrix in assayData. ALternatively we can simple store the names of the features using a character vector in the slot featureNames.
+
+```{r}
+
+myGenes <- rownames(expressions)
+myEset <- ExpressionSet(assayData=expressions, phenoData=myAnnotDF, featureNames= myGenes)
+show(myEset)
+```
+
+
+### Information about the experiment
 The class MIAME was created to add the "Minimum Information About a Microarray Experiment"
 ```{r}
 myDesc <- new("MIAME", name= "Expression profiling by array",
@@ -77,52 +101,57 @@ myDesc <- new("MIAME", name= "Expression profiling by array",
 print(myDesc)
 ```
 
-
+We can also add the annotation, which is the platform. 
 ```{r}
-rownames(pData(myAnnotDF))<-pData(myAnnotDF)$sampleNames
-```
-
-
-```{r}
-
 myEset <- ExpressionSet(assayData=expressions, 
                         phenoData=myAnnotDF,
-                        experimentData = myDesc, annotation =  	"GPL23038")
+                        experimentData = myDesc,featureNames = myGenes, annotation =  	"GPL23038")
 show(myEset)
 ```
+# Using objects of class ExpressionSet
 
 ## Access Slot values
+```{r}
+dim(exprs(myEset))
+class(phenoData(myEset))
+class(pData(phenoData(myEset)))
+head(pData(phenoData(myEset)))
+head(pData(myEset))
+```
 
-
+## Subsetting
 ```{r}
 smallEset <- myEset[1:15,c(1:3,6:8)]
 dim(exprs(smallEset))
 dim(pData(smallEset))
 head(pData(smallEset))
 all(colnames(exprs(smallEset))==rownames(pData(smallEset)))
-
-
-## ------------------------------------------------------------------------
 youngEset <- myEset[,pData(myEset)$DietType == "Control_diet_fed"]
 dim(exprs(youngEset))
-head(pData(youngEset))
 ```
 
-
 ## The GEOquery package
-
-```{r}
+The GEOquery package allows us to to get data from GEO very easily. There is only one command that is need, getGEO.
+```{r message=FALSE}
 require(GEOquery)
 ```
 
-```{r}
+```{r warning=FALSE}
 gse <- getGEO("GSE124927")
 class(gse)
 names(gse)
+```
+
+```{r}
 gse[[1]]
 ```
 
-## Data Description
+
+# Data Description
+
+Moreover, we can describe the data we have by  doing plots or other commands.
+
+## Dimension and Summary
 ```{r}
 dim(expressions)
 summary(expressions)
@@ -134,5 +163,4 @@ boxplot(expressions)
 ```
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
     
