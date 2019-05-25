@@ -1,4 +1,4 @@
-sampleName      genotype replicate color
+sampleName      genotype replicate
 GSM3559494 	Control_diet_fed 11_1B 
 GSM3559495 	High_fat_dietfed_Diet-indued_obese 13_6C 
 GSM3559496 	Control_diet_fed 14_3A 
