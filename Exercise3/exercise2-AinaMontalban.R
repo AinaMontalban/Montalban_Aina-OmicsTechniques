@@ -3,11 +3,11 @@
 #---------------------------------------------------------------------------------------------
 
 
-
+getwd()
 #---------------------------------------------------------------------------------------------
 ###FOLDER DESTINATION DEFINITIONS
 #---------------------------------------------------------------------------------------------
-workingDir <-setwd("~/3Term/OmicsTechniques/OmicsTechniquesM2/exercise2")
+workingDir <-getwd()
 dataDir <- file.path(workingDir, "dades")
 resultsDir <- file.path(workingDir, "results")
 setwd(resultsDir)
@@ -112,7 +112,6 @@ dev.off()
 ###DATA NORMALIZATION
 #---------------------------------------------------------------------------------------------
 eset<-rma(rawData)
-eset_rma<-rma(rawData)
 
 write.exprs(eset, file.path(resultsDir, "NormData.txt"))
 
@@ -165,7 +164,7 @@ arrayQualityMetrics(eset,  reporttitle="QualityControl", force=TRUE)
 ###Detecting Most Variable Genes
 #---------------------------------------------------------------------------------------------
 
-sds <- apply (exprs(eset_rma), 1, sd) 
+sds <- apply (exprs(eset), 1, sd) 
 sdsO<- sort(sds) 
 plot(1:length(sdsO), sdsO, main="Distribution of variability for all genes",sub="Vertical lines represent 90% and 95% percentiles",
        xlab="Gene index (from least to most variable)",
@@ -188,8 +187,10 @@ abline(v=length(sds)*c(0.9,0.95))
 ## Annotation: GPL23038
 
 
+
 eset
-annotation(eset) <- "org.Mm.eg.db"
+#BiocManager::install("Clariom_S_Mouse.db")
+annotation(eset)<- "pd.clariom.s.mouse"
 eset_filtered <- nsFilter(eset, var.func=IQR,
          var.cutoff=0.75, var.filter=TRUE,
          filterByQuantile=TRUE)
@@ -217,11 +218,12 @@ print(design)
 
 #COMPARISON
 cont.matrix1 <- makeContrasts( 
-        CDF.vs.HF = CDF - HF, 
-        HF.vs.HF_RES = HF-HF_RES, 
-        CDF.vs.HF_RES = CDF-HF_RES,
-        levels = design)
-  comparison1 <- "Effect of Diet"
+  CD.vs.HF = CD- HF, 
+  HF.vs.HF_RES = HF-HF_RES, 
+  CD.vs.HF_RES = CD-HF_RES,
+  levels = design)
+cont.matrix1
+comparison1 <- "Effect of Diet"
 
 #MODEL FIT
 fit1 <- lmFit(eset_filtered$eset, design)
