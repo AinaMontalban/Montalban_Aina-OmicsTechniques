@@ -54,6 +54,8 @@ targets
 # Read cel files
 CELfiles <- list.celfiles(file.path(dataDir))
 CELfiles
+length(CELfiles)
+class(CELfiles)
 rawData <- read.celfiles(file.path(dataDir,CELfiles))
 
 #DEFINE SOME VARIABLES FOR PLOTS
@@ -217,7 +219,7 @@ print(design)
 
 #COMPARISON
 cont.matrix1 <- makeContrasts( 
-        CFD.vs.HF = CDF-HF, CDF.vs.HF_RES = CDF-HF_RES, HF.vs.HF_RES = HF-HF_RES,
+        CDF.vs.HF = HF-CDF, CDF.vs.HF_RES = HF_RES-CDF, HF.vs.HF_RES = HF_RES-HF,
         levels = design)
 comparison1 <- "Effect of Diet"
 
@@ -232,7 +234,7 @@ fit.main1 <- eBayes(fit.main1)
 #---------------------------------------------------------------------------------------------
 
 #FILTER BY FALSE DISCOVERY RATE AND FOLD CHANGE
-topTab <-  topTable (fit.main1, number=nrow(fit.main1), coef="CFD.vs.HF", adjust="fdr",lfc=abs(3))
+topTab <-  topTable (fit.main1, number=nrow(fit.main1), coef="CDF.vs.HF", adjust="fdr",lfc=abs(3))
 head(topTab)
 #EXPORTED TO CSV AND HTML FILE
 write.csv2(topTab, file= file.path(resultsDir,paste("Selected.Genes.in.comparison.",
@@ -291,6 +293,7 @@ heatmap.2(HMdata2,
           ColSideColors=c(rep("red",4),rep("blue",4)),
           tracecol=NULL,
           srtCol=30)
+
 
 #EXPORT TO PDF FILE
 pdf(file.path(resultsDir,"HeatMap InducedvsWT.pdf"))

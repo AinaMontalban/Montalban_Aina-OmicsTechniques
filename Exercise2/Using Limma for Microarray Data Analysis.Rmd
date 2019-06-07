@@ -1,0 +1,86 @@
+---
+title: "Exercices in linear models and experimental design"
+author: "Aina Montalbán"
+output:
+  html_document:
+    theme: united
+    toc: yes
+  pdf_document:
+    toc: no
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction
+
+These exercises describe experimental situations that have been studied using some omics technology like microarrays.
+
+# Comparison between groups
+
+This case study is based on a data are available in GEO as series GSE124927 series on the following link
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi
+
+The researchers studied RNA isolated from FACS-sorted uterine natural killer cells from Gd10.5 pregnancies in 10 control, 6 diet-induced obese and 4 diet-induced obese resistant mice. Therefore, there are three groups of mice:
+
+- 10 control diet
+- 6 diet-induced obsese
+- 4 diet-induced obese resistant
+
+Obviously this is an observational study but its analysis can be done using a linear model approach as well.
+
+1. Identify the experimental factors and their levels.
+2. Write down the design matrix associated with this study design.
+3. Build the contrast matrix needed to compare each group type with the oher two, that are:
+
+    1. "Control diet" vs “Diet-induced obese”
+    2. "Control diet" vs “Diet-induced obese resistant”
+    3. "Diet-induced obese" vs “Diet-induced obese resistant”
+    
+
+```{r readTargets}
+require (limma)
+targets <- read.csv("targets.txt", sep = "")
+
+```
+
+# Design Matrix
+We can compute the design matrix in two ways: manually or using the limma package.
+```{r designMatrix}
+design<-matrix(
+  c(1,0,1,0,0,0,0,0,1,1,1,1,0,0,1,0,0,1,1,1,
+    0,1,0,1,1,0,0,1,1,0,0,0,1,1,0,0,0,0,0,0,
+    0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0),
+  nrow=20,byrow=F)
+design2 <-model.matrix(~ 0+targets$shortName)
+colnames(design)<-c("CDF", "HF", "HF_RES")
+rownames(design)<- targets$sampleName 
+colnames(design2)<-c("CDF", "HF", "HF_RES")
+rownames(design2)<- targets$sampleName 
+print(design2)
+```
+  
+
+# Contrast Matrix
+
+```{r contrastsMatrix}
+cont.matrix1 <- makeContrasts( 
+        CDF.vs.HF = CDF - HF, 
+        HF.vs.HF_RES = HF-HF_RES, 
+        CDF.vs.HF_RES = CDF-HF_RES,
+        levels = design2)
+cont.matrix1
+```
+
+
+
+```{r}
+require(limma)
+fit<-lmFit(dataMatrix, design2)
+fit.main<-contrasts.fit(fit, cont.matrix2)
+fit.main<-eBayes(fit.main)
+t.test(c(1.01, 1.02, 0.99), c(1.11, 1.12, 1.09))
+# Gordon Smith ?->  t test significant when it is not. (small differences)
+```
+```
+
