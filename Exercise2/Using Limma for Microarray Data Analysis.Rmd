@@ -44,6 +44,8 @@ targets <- read.csv("targets.txt", sep = "")
 
 ```
 
+
+
 # Design Matrix
 We can compute the design matrix in two ways: manually or using the limma package.
 ```{r designMatrix}
@@ -53,9 +55,9 @@ design<-matrix(
     0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,0,0,0),
   nrow=20,byrow=F)
 design2 <-model.matrix(~ 0+targets$shortName)
-colnames(design)<-c("CDF", "HF", "HF_RES")
+colnames(design)<-c("CD", "HF", "HF_RES")
 rownames(design)<- targets$sampleName 
-colnames(design2)<-c("CDF", "HF", "HF_RES")
+colnames(design2)<-c("CD", "HF", "HF_RES")
 rownames(design2)<- targets$sampleName 
 print(design2)
 ```
@@ -65,22 +67,10 @@ print(design2)
 
 ```{r contrastsMatrix}
 cont.matrix1 <- makeContrasts( 
-        CDF.vs.HF = CDF - HF, 
+        CD.vs.HF = CD- HF, 
         HF.vs.HF_RES = HF-HF_RES, 
-        CDF.vs.HF_RES = CDF-HF_RES,
+        CD.vs.HF_RES = CD-HF_RES,
         levels = design2)
 cont.matrix1
-```
-
-
-
-```{r}
-require(limma)
-fit<-lmFit(dataMatrix, design2)
-fit.main<-contrasts.fit(fit, cont.matrix2)
-fit.main<-eBayes(fit.main)
-t.test(c(1.01, 1.02, 0.99), c(1.11, 1.12, 1.09))
-# Gordon Smith ?->  t test significant when it is not. (small differences)
-```
 ```
 
