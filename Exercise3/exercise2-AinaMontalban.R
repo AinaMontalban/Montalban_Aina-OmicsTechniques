@@ -27,6 +27,8 @@ installifnot <- function (pkg){
 }
 
 installifnot("pd.mogene.1.0.st.v1")
+installifnot("pd.clariom.s.mouse")
+
 installifnot("mogene10sttranscriptcluster.db")
 installifnot("oligo")
 installifnot("limma")
@@ -185,12 +187,16 @@ abline(v=length(sds)*c(0.9,0.95))
 ## featureData: none
 ## experimentData: use 'experimentData(object)'
 ## Annotation: GPL23038
+print(annotation(eset)) ##[1] "hgu95av2" 
+library("hgu95av2.db") library('genefilter')
+columns(pd.clariom.s.mouse)
 
 
+traceback()
+BiocManager::install("clariomsmousehttranscriptcluster.db")
+annotation(eset)<- "clariomsmousetranscriptcluster.db"
 
-eset
-#BiocManager::install("Clariom_S_Mouse.db")
-annotation(eset)<- "pd.clariom.s.mouse"
+map <- getAnnMap("ENTREZID", "pd.clariom.s.mouse", type = c("env"))
 eset_filtered <- nsFilter(eset, var.func=IQR,
          var.cutoff=0.75, var.filter=TRUE,
          filterByQuantile=TRUE)
