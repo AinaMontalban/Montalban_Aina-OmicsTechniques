@@ -1,0 +1,22 @@
+sampleName      group replicate 					shortName	Colors
+GSM3559494 	Control_diet_fed 11_1B 					CD		2
+GSM3559496 	Control_diet_fed 14_3A 					CD		2
+GSM3559502 	Control_diet_fed 20_19E 				CD		2
+GSM3559503 	Control_diet_fed 24_13D 				CD		2
+GSM3559504 	Control_diet_fed 26_17A 				CD		2
+GSM3559505 	Control_diet_fed 27_13B 				CD		2
+GSM3559511 	Control_diet_fed 38_21C 				CD		2
+GSM3559512 	Control_diet_fed 4_3E 					CD		2
+GSM3559513 	Control_diet_fed 9_7E 					CD		2
+GSM3559508 	Control_diet_fed 32_15E 				CD		2
+GSM3559495 	High_fat_dietfed_Diet-indued_obese 13_6C 		HF		3
+GSM3559497 	High_fat_dietfed_Diet-indued_obese 15_10B 		HF		3
+GSM3559500 	High_fat_dietfed_Diet-indued_obese 18_2C 		HF		3
+GSM3559501 	High_fat_dietfed_Diet-indued_obese 2_6B 		HF		3
+GSM3559506 	High_fat_dietfed_Diet-indued_obese 3_4E 		HF		3
+GSM3559507 	High_fat_dietfed_Diet-indued_obese 30_18C 		HF		3
+GSM3559498 	High_fat_dietfed_Diet-indued_obese_resistant 16_4D 	HF_RES		4
+GSM3559499 	High_fat_dietfed_Diet-indued_obese_resistant 17_4C	HF_RES		4
+GSM3559509 	High_fat_dietfed_Diet-indued_obese_resistant 33_14D 	HF_RES		4
+GSM3559510 	High_fat_dietfed_Diet-indued_obese_resistant 37_18E 	HF_RES		4
+
