@@ -1,3 +1,5 @@
+## Exercise 3
+
 Exercise3 contains 3 folders and some files.
 
 The files are:
