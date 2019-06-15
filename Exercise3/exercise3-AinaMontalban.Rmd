@@ -3,11 +3,11 @@ title: "Stastical Analysis of Microarray Data"
 author: "Aina Montalban"
 date: "6/8/2019"
 output:
+  pdf_document:
+    toc: no
   html_document:
     theme: united
     toc: yes
-  pdf_document:
-    toc: no
 ---
 
 ```{r setup, include=FALSE}
@@ -147,7 +147,7 @@ write.exprs(eset_rma, file.path(resultsDir, "NormData.txt"))
 ```
 
 ## Quality assessment of normalized data
-The same quality check we have done with the data, we can do it with the Normalized data.
+The same quality check we have done with the raw data, we can do it with the Normalized data.
 
 ### Boxplot
 ```{r}
@@ -280,15 +280,19 @@ We also need to associate the information from the tables above with familar nam
 all_anota<-data.frame(exprs(eset_rma))
 Annot <- data.frame(SYMBOL=sapply(contents(clariomsmousetranscriptclusterSYMBOL), paste, collapse=", "),
                     DESC=sapply(contents(clariomsmousetranscriptclusterGENENAME), paste, collapse=", "),
-                    UNIPROT=sapply(contents(clariomsmousetranscriptclusterUNIPROT), paste, collapse=", "))
+                    UNIPROT=sapply(contents(clariomsmousetranscriptclusterUNIPROT), paste, collapse=", "),
+                    ENTREZID=sapply(contents(clariomsmousetranscriptclusterENTREZID), paste, collapse=", "))
 Annot<-Annot[!Annot$SYMBOL=="NA",]
 Annot<-Annot[!Annot$DESC=="NA",]
 Annot<-Annot[!Annot$UNIPROT=="NA",]
+Annot<-Annot[!Annot$ENTREZID=="NA",]
 anotaGenes <- merge(Annot,all_anota, by.x=0,by.y=0)
 write.table(anotaGenes, file ="data.ann.txt",sep="\t")
 rownames(anotaGenes) <- anotaGenes[,1]
 anotaGenes <- anotaGenes[,-1]
 ```
+
+Finally, for each comparison we need to annotate the genes that are differentially expressed. However, in the tables above we can see that the adjusted p-values are not quite good, in other words, they are not significant. 
 
 ### Comparison 1: Control-diet vs Diet-Indued
 ```{r}
@@ -345,6 +349,7 @@ write.csv(topTab.end3, file = file.path(resultsDir,"TopTable_comp3.end.csv"))
 head(topTab.end3[,1:3])
 ```
 
+In order to observe this more visually, we can perfrorm three volcanos plot of each comparison.
 
 ### Volcano Plots
 
@@ -367,54 +372,14 @@ volcanoplot(fit.main1, coef = 3, highlight = 10, names = SYMBOLS,
 abline(v = c(-1, 1))
 ```
 
+As I have mentioned the p-value is not significant, and we can say that there are no genes significantlly differentially expressed. So, there is no sense to continue the study. Although, in order to learn the following steps of the analysis, I will perform multiple comparisions, but always taking into account that the p-value is not significant.
+
 
 
 ```{r}
-res <- decideTests(fit.main1, method = "separate", adjust.method = "fdr", p.value = 0.1, lfc = 1)
+res <- decideTests(fit.main1, method = "separate", adjust.method = "fdr", p.value = 1, lfc = 1)
 sum.res.rows <- apply(abs(res), 1, sum)
-sum.res.rows
 res.selected <- res[sum.res.rows!=0,]
-res.selected
 print(summary(res))
 vennDiagram(res.selected[,1:3], cex=0.9)
 ```
-
-
-
-```{r}
-listOfTables <- list(CD.vs.HF = topTab_CDvsHF, 
-                     HF.vs.HF_RES  = topTab_HFvsHF_RES, 
-                     CD.vs.HF_RES = topTab_CDvsHF_RES)
-listOfSelected <- list()
-for (i in 1:length(listOfTables)){
-  # select the toptable
-  topTab <- listOfTables[[i]]
-  # select the genes to be included in the analysis
-  whichGenes<-topTab["adj.P.Val"]<0.15
-  selectedIDs <- rownames(topTab)[whichGenes]
-  # convert the ID to Entrez
-  EntrezIDs<- select(clariomsmousetranscriptcluster.db, selectedIDs, c("ENTREZID"))
-  EntrezIDs <- EntrezIDs$ENTREZID
-  listOfSelected[[i]] <- EntrezIDs
-  names(listOfSelected)[i] <- names(listOfTables)[i]
-}
-sapply(listOfSelected, length)
-```
-
-
-```{r}
-EntrezUni <- topTab.end1$ENTREZID
-
-## ----BiologicalSig-------------------------------------------------------
-require(ReactomePA)
-
-listOfData <- listOfSelected[1:2]
-comparisonsNames <- names(listOfData)
-
-organisme <- "mouse"
-universe <- as.character(EntrezUni)
-
-       
-
-```
-
