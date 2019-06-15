@@ -1,0 +1,401 @@
+---
+title: "Statistical Analysis of Microarray Data"
+author: "Aina Montalban"
+date: "6/15/2019"
+output:
+  pdf_document:
+    toc: no
+  html_document:
+    theme: paper
+    toc: yes
+---
+<style>
+body {
+text-align: justify}
+</style>
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+workingDir <-getwd()
+dataDir <- file.path(workingDir, "dades")
+resultsDir <- file.path(workingDir, "results")
+setwd(resultsDir)
+```
+```{r message=FALSE}
+#if (!require(BiocManager)) install.packages("BiocManager")
+
+installifnot <- function (pkg){
+  if (!require(pkg, character.only=T)){
+    BiocManager::install(pkg)
+}else{
+  require(pkg, character.only=T)
+  }
+}
+
+installifnot("pd.clariom.s.mouse")
+installifnot("oligo")
+installifnot("limma")
+installifnot("Biobase")
+installifnot("gridSVG")
+installifnot("ReactomePA")
+#installifnot("arrayQualityMetrics")
+installifnot("genefilter")
+installifnot("multtest")
+installifnot("annotate")
+installifnot("xtable")
+installifnot("gplots")
+installifnot("scatterplot3d")
+
+```
+Link to AinaMontalban repository: *https://github.com/AinaMontalban/Montalban_Aina-OmicsTechniques.git* 
+
+
+# 1. Abstract
+
+Natural killer (NK) cells are lymphocytes of the innate immune system. The uterine natural killer cells seems to have an important role during pregnancy, such as the control of trophoblast invasion or the development of the placenta. An analysis of gene expression in uterine natural killer cells from different female mice is performed. The uterine natural killer cells were purified from control, diet-induced obese and diet-induced obese resistant. The aim of the study is to identify differentially expressed genes in those cells affected by diet and obesity in pregnancy. 
+
+# 2. Objectives
+
+The main goal of the study is identify differentially expressed genes in uterine natural killer cells affected by maternal diet and obesity in pregnancy. 
+
+Moreover, the study is also interested in identifying pathways from the natural killer cells and improve the knowledge of the role that these cells play in the pregnancies.
+
+To achieve all this we will follow a workflow explained in the next section. 
+
+# 3. Materials  
+
+This study will be performed from the collection of one dataset with the **GSE124927** accession number from the GEO datasets. This dataset is from the Beristain lab of Vancouver, Canada. The lab is from the department of Obstetricts and Gynecology of The University British Columbia. 
+
+The experiment type for this analysis the expression profiling by array, in other words, microarrays. 
+
+The overall design of the study involved total RNA isolated from FACS-sorted uterine natural killer cells from Gd10.5 pregnancies in 10 control, 6 diet-induced obese and 4 diet-induced obese resistant mice.
+
+Regarding the type of microarrays, we know that the common types are: cDNA arrays and Gene chips. In this case, the GeneChips are used. Genechip or also called Affymetrix are obtained by synthesis of 25mers oligonucleotides using the photolithography technique on a quartz surface. The one from the study analyzed is *Affymetrix Clariom S Assay, Mouse*.
+
+First, the target file shows as the number of samples and groups. 
+
+```{r Data Capture TARGETS}
+targets <- read.csv(file = (file.path(dataDir,"targets.txt")),header = TRUE, sep = "")
+targets[,1:3]
+```
+
+In the table above, three columns are shown: the sample name, the group and the replicate. There are 3 groups:
+
+* Control diet fiet
+* High fat diet Diet-indued obese
+* High fat diet Diet-indued obese resistant
+
+The target file also contains two more columns not shown in this document, the shortNames and the colors for a better understanding of the data and the plots. 
+
+From the control diet there are 10 samples, for the high fat diet obese 6 samples, and finally, from the resistants one there are 4 samples. So, the study has a total of 20 samples.
+
+The expression of this 20 samples are in the CEL files. 
+
+```{r Data Capture CEL, message=FALSE, results='hide', echo=TRUE}
+CELfiles <- list.celfiles(file.path(dataDir))
+CELfiles
+rawData <- read.celfiles(file.path(dataDir,CELfiles))
+```
+
+# 4. Methods
+
+The methods can be divided in two sections: the general pipeline and the procedure performed.
+
+## 4.1 Pipeline
+
+The next image illustrates the pipeline followed:
+
+![](/home/aina/3Term/OmicsTechniques/pipeline.png)
+
+The steps to do a proper statistical analysis of microarray data are: capturing the data from your own experiment or from the GEO database, reading the raw data, quality check of the raw data, normalization, quality assessment of the normalized data, filtering and selection of the differentially expressed genes, followed by a proper interpretation fo the results. 
+
+## 4.2 Procedures
+
+For this analysis a wide number of packages is used, such as Oligo, Biobase, limma, genefilter, annotate, clariomsmousetranscriptcluster.db, among others.
+
+Data capture is the initial point of each data analysis. In this case, we selected a dataset from the GEO database https://www.ncbi.nlm.nih.gov/geo/. The dataset selected was the **GSE124927**, a genome-wide analysis of uterine natural killer cell gene expression from control diet-fed and high fat diet-fed female mice in early pregnancy. 
+As we have mentioned, this dataset contains two main sources of information: the **target file** and the **CEL files**.
+
+Once we have captured the data, a **quality check** is performed to the raw data, the plots obtained will be discussed on the *Results* section. 
+
+Then, the raw data is **normalized** with three main steps: 
+* Background correcting
+* Normalizing
+* Calculating Expression
+
+```{r echo=TRUE}
+eset_rma<-rma(rawData)
+write.exprs(eset_rma, file.path(resultsDir, "NormData.txt"))
+```
+
+The same **quality check** we have done with the raw data, we can do it with the Normalized data.
+
+Moreover, the **filtering** of the genes is performed with geneFilter package using the nsFilter, from that we obtain the expression set with only the genes that can be differentially expressed.
+
+Once the **design matrix** and the **contrast matrix** is defined, a model estimation is performed in order to do a test statistic to infer if the genes can be considered differentially expressed. 
+
+Finally, we obtain the some tables annotated with the genes differentially expressed and the adjusted p-value with the False Discovery Rate adjustment.
+
+All the steps performed are summarized in the following table:
+
+![](/home/aina/3Term/OmicsTechniques/table.png)
+
+# 5. Results
+
+Here, we are going to proceed the analysis of the results obtained. For that, we will follow the pipeline. 
+
+As we have already said, a quality check is done to the raw data and the normalized data.
+
+
+```{r}
+# Select sample names and colors
+sampleNames <- as.character(targets$shortName)
+sampleColor <- as.character(targets$Colors)
+```
+
+
+For Raw Data, the plots we obtain are: 
+
+
+```{r}
+
+par(mfrow = c(1, 2))
+boxplot(rawData, which="all",las=2, main="Intensity distribution of RAW data", 
+       cex.axis=0.6, col=sampleColor, names=sampleNames)
+
+clust.euclid.average <- hclust(dist(t(exprs(rawData))),method="average")
+plot(clust.euclid.average, labels=sampleNames, main="Hierarchical clustering of RawData", 
+     cex=0.7,  hang=-1)
+```
+
+```{r}
+plotPCA <- function ( X, labels=NULL, colors=NULL, dataDesc="", scale=FALSE, formapunts=NULL, myCex=0.8,...)
+{
+  pcX<-prcomp(t(X), scale=scale) # o prcomp(t(X))
+  loads<- round(pcX$sdev^2/sum(pcX$sdev^2)*100,1)
+  xlab<-c(paste("PC1",loads[1],"%"))
+  ylab<-c(paste("PC2",loads[2],"%"))
+  if (is.null(colors)) colors=1
+  plot(pcX$x[,1:2],xlab=xlab,ylab=ylab, col=colors, pch=formapunts, 
+       xlim=c(min(pcX$x[,1])-100000, max(pcX$x[,1])+100000),ylim=c(min(pcX$x[,2])-100000, max(pcX$x[,2])+100000))
+  text(pcX$x[,1],pcX$x[,2], labels, pos=3, cex=myCex)
+  title(paste("Plot of first 2 PCs for expressions in", dataDesc, sep=" "), cex=0.8)
+}
+plotPCA(exprs(rawData), labels=sampleNames, dataDesc="raw data", colors=sampleColor,
+        formapunts=c(rep(16,4)), myCex=0.6)
+```
+
+Then, the plots for the normalized data are:
+
+```{r}
+par(mfrow = c(1, 2))
+boxplot(eset_rma, las=2, main="Intensity distribution of Normalized data", cex.axis=0.6, 
+        col=sampleColor, names=sampleNames)
+
+clust.euclid.average <- hclust(dist(t(exprs(eset_rma))),method="average")
+plot(clust.euclid.average, labels=sampleNames, main="Hierarchical clustering of NormData", 
+     cex=0.7,  hang=-1)
+```
+
+```{r}
+#PRINCIPAL COMPONENT ANALYSIS
+plotPCA <- function ( X, labels=NULL, colors=NULL, dataDesc="", scale=FALSE, formapunts=NULL, myCex=0.8,...)
+{
+  pcX<-prcomp(t(X), scale=scale) # o prcomp(t(X))
+  loads<- round(pcX$sdev^2/sum(pcX$sdev^2)*100,1)
+  xlab<-c(paste("PC1",loads[1],"%"))
+  ylab<-c(paste("PC2",loads[2],"%"))
+  if (is.null(colors)) colors=1
+  plot(pcX$x[,1:2],xlab=xlab,ylab=ylab, col=colors, pch=formapunts, 
+       xlim=c(min(pcX$x[,1])-10, max(pcX$x[,1])+10),ylim=c(min(pcX$x[,2])-10, max(pcX$x[,2])+10))
+  text(pcX$x[,1],pcX$x[,2], labels, pos=3, cex=myCex)
+  title(paste("Plot of first 2 PCs for expressions in", dataDesc, sep=" "), cex=0.8)
+}
+
+plotPCA(exprs(eset_rma), labels=sampleNames, dataDesc="NormData", colors=sampleColor,
+        formapunts=c(rep(16,4)), myCex=0.6)
+```
+
+The above plot of Principal Component Analysis shows that there is no much difference between the groups. However, we are going to proceed with the analysis.
+
+Then, we filter the genes with the next function and a corresponding annotation:
+
+```{r echo=TRUE}
+annotation(eset_rma) <- "clariomsmousetranscriptcluster.db"
+eset_filtered <- nsFilter(eset_rma, var.func=IQR,
+         var.cutoff=0.75, var.filter=TRUE,
+         filterByQuantile=TRUE)
+print(eset_filtered$eset)
+```
+
+After filtering we obtain only 5074 genes left. 
+
+As described in the methods procedure a design matrix and constrast matrix is defined, in order to perform a comparison test statistic. Remember that three comparisons are made:
+
+1. "Control diet" vs “Diet-induced obese”
+2. "Control diet" vs “Diet-induced obese resistant”
+3. "Diet-induced obese" vs “Diet-induced obese resistant”
+
+Finally, we can proceed with the identifcation of the differentially expressed genes. For each comparison, we have obtained one table with a list of differentially expressed genes, To sum up, we are going to show only the annotated top tables of each comparison.
+
+```{r}
+#CONTRAST MATRIX.lINEAR MODEL
+treat <- targets$shortName
+lev <- factor(treat, levels = unique(treat))
+design <-model.matrix(~ 0+targets$shortName)
+rownames(design)<- targets$sampleName 
+colnames(design)<-c("CD", "HF", "HF_RES")
+```
+```{r}
+cont.matrix1 <- makeContrasts( 
+  CD.vs.HF = CD- HF, 
+  HF.vs.HF_RES = HF-HF_RES, 
+  CD.vs.HF_RES = CD-HF_RES,
+  levels = design)
+```
+
+```{r}
+#MODEL FIT
+fit1 <- lmFit(eset_filtered$eset, design)
+fit.main1 <- contrasts.fit(fit1, cont.matrix1)
+fit.main1 <- eBayes(fit.main1)
+```
+
+
+```{r}
+comparison1 <- "CDvsHF"
+#FILTER BY FALSE DISCOVERY RATE AND FOLD CHANGE
+topTab_CDvsHF <- topTable(fit.main1, number=nrow(fit.main1), coef = "CD.vs.HF", adjust="fdr", lfc = 1)
+```
+
+```{r}
+comparison2 <- "HFvsHF_RES"
+#minimum absolute log2-fold-change required. 
+topTab_HFvsHF_RES <- topTable(fit.main1, number=nrow(fit.main1), coef = "HF.vs.HF_RES", adjust="fdr", lfc = 1)
+```
+
+
+```{r}
+comparison3 <- "CDvsHF_RES"
+topTab_CDvsHF_RES <- topTable(fit.main1, number=nrow(fit.main1), coef = "CD.vs.HF_RES", adjust="fdr", lfc = 1)
+```
+
+
+```{r}
+all_anota<-data.frame(exprs(eset_rma))
+Annot <- data.frame(SYMBOL=sapply(contents(clariomsmousetranscriptclusterSYMBOL), paste, collapse=", "),
+                    DESC=sapply(contents(clariomsmousetranscriptclusterGENENAME), paste, collapse=", "),
+                    UNIPROT=sapply(contents(clariomsmousetranscriptclusterUNIPROT), paste, collapse=", "),
+                    ENTREZID=sapply(contents(clariomsmousetranscriptclusterENTREZID), paste, collapse=", "))
+Annot<-Annot[!Annot$SYMBOL=="NA",]
+Annot<-Annot[!Annot$DESC=="NA",]
+Annot<-Annot[!Annot$UNIPROT=="NA",]
+Annot<-Annot[!Annot$ENTREZID=="NA",]
+anotaGenes <- merge(Annot,all_anota, by.x=0,by.y=0)
+write.table(anotaGenes, file ="data.ann.txt",sep="\t")
+rownames(anotaGenes) <- anotaGenes[,1]
+anotaGenes <- anotaGenes[,-1]
+```
+
+
+```{r}
+## Comparison 1
+anotaGenes.end1 <- merge(anotaGenes, topTab_CDvsHF, by.x=0,by.y=0)
+topTab.end1 <- merge(anotaGenes, topTab_CDvsHF, by.x=0,by.y=0)
+#reordenamos las columnas
+#topTab.end1 <- anotaGenes.end1[,c(1:3,12:17,4:11)]
+topTab.end1 <- topTab.end1[order(-topTab.end1$B),]
+rownames(topTab.end1) <- topTab.end1[,1]
+topTab.end1 <- topTab.end1[, -1]
+write.csv(topTab.end1, file = file.path(resultsDir,"TopTable_comp1.end.csv"))
+```
+**Annotated top table for comparison "CDvsHF".**
+
+```{r}
+head(topTab.end1[,c("SYMBOL","adj.P.Val","B")])
+```
+
+
+
+
+```{r}
+## Comparison 2
+anotaGenes.end2 <- merge(anotaGenes, topTab_HFvsHF_RES, by.x=0,by.y=0)
+#reordenamos las columnas
+topTab.end2 <- anotaGenes.end2
+topTab.end2 <- topTab.end2[order(-topTab.end2$B),]
+
+rownames(topTab.end2) <- topTab.end2[,1]
+topTab.end2 <- topTab.end2[, -1]
+write.csv(topTab.end2, file = file.path(resultsDir,"TopTable_comp2.end.csv"))
+```
+
+**Annotated top table for comparison "HFvsHF_RES".**
+
+```{r}
+head(topTab.end2[,c("SYMBOL","adj.P.Val","B")])
+```
+
+```{r}
+## Comparison 3
+anotaGenes.end3 <- merge(anotaGenes, topTab_CDvsHF_RES, by.x=0,by.y=0)
+#reordenamos las columnas
+topTab.end3 <- anotaGenes.end3
+topTab.end3 <- topTab.end3[order(-topTab.end3$B),]
+
+rownames(topTab.end3) <- topTab.end3[,1]
+topTab.end3 <- topTab.end3[, -1]
+write.csv(topTab.end3, file = file.path(resultsDir,"TopTable_comp3.end.csv"))
+```
+
+**Annotated top table for comparison "CDvsHF_RES".**
+
+```{r}
+head(topTab.end3[,c("SYMBOL","adj.P.Val","B")])
+```
+
+The tables above shows us the differentially expressed genes. For each gene, we can see the symbol, the adjusted p-value and the B value.
+
+Notice that we can find a very bad p-value, as it is much greater than 0.05 and B value is negative. The results are not significant. Therefore, we can assume that there are no significant differentially expressed genes for any comparisons.
+
+In order to see these visually I had performed three volcanos plots for the three comparisons:
+
+```{r}
+geneSym <- select(clariomsmousetranscriptcluster.db, rownames(fit.main1), c("SYMBOL"))  
+SYMBOLS <- geneSym$SYMBOL
+
+
+volcanoplot(fit.main1, coef = 1, highlight = 10, names = SYMBOLS, 
+            main = paste("Differentially expressed genes", 
+            colnames(cont.matrix1)[1], sep = "\n"))
+abline(v = c(-1, 1))
+volcanoplot(fit.main1, coef = 2, highlight = 10, names = SYMBOLS, 
+            main = paste("Differentially expressed genes", 
+                         colnames(cont.matrix1)[2], sep = "\n"))
+abline(v = c(-1, 1))
+volcanoplot(fit.main1, coef = 3, highlight = 10, names = SYMBOLS, 
+            main = paste("Differentially expressed genes", 
+                         colnames(cont.matrix1)[3], sep = "\n"))
+abline(v = c(-1, 1))
+```
+
+
+The results that we were expecting had not been observed and the goal of the study is not achieved. 
+
+# 6. Discussion
+
+The goal of the study was to identify differentially expressed genes in uterine natural killer cells affected by maternal diet and obesity in pregnancy. The results obtained shown us that the goal has not been achieved, as we hadn't obtained any differential expressed genes. This could be due to some limitations of the study.
+
+At first glance, we could say that this could be due to some experimental error or that clearly there are no differentially expressed genes for the factor studied. In the next lines, I will suggest some improvements that could be done to the study.
+
+To improve the study we might have the same number of samples for each group, because the study has an unequilibrated number of samples per group (i.e. there 10 samples of the control group and only 4 from the resistant group). 
+
+Furthermore, maybe it could be interesting to study other factors that can affect the uterine natural killer cells and not only the maternal diet and obesity in pregnancy.
+
+# 7. Conclusions
+
+
+In this project, I have learned how to manage microarray data and the analysis of it. For that, I have followed the main steps of the R file provided in Omics Techniques subject and the draft called *Statistical Analysis of Microarray Data*. My goal was to identify differential expressed genes of the data I selected, but unfortunetly the results I obtained were not significant and, in consequence, there were no genes differentially expressed. So, the analysis was performed correctly until the annotation step. However, it is true that in Rmd file I had performed the multiple comparisons, but it is irrellevant, because I assumed a bad p-value. In addition, as I didn't obtain any significant gene I had not been able to study the functional interpretation and the pathways of the differential expressed genes. 
+
