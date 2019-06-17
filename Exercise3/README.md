@@ -11,6 +11,6 @@ The files are:
 
 The folders are:
 
-* Dades that contains the targets file and the CEL files.
-* More that contains the Rmd file from the report file.
-* Results that contains the results of the analysis: topTables, Normdata, QCPlots, etc.
+* _Dades_ that contains the targets file and the CEL files.
+* _More_ that contains the Rmd file from the report file.
+* _Results_ that contains the results of the analysis: topTables, Normdata, QCPlots, etc.
